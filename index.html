@@ -500,6 +500,37 @@ html[lang="ar"] .facts dt{font-family:var(--ar-body);letter-spacing:0;font-size:
   .sheet.on{transform:none}
 }
 </style>
+<!-- Snap Pixel Code -->
+<script type='text/javascript'>
+(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function()
+{a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};
+a.queue=[];var s='script';r=t.createElement(s);r.async=!0;
+r.src=n;var u=t.getElementsByTagName(s)[0];
+u.parentNode.insertBefore(r,u);})(window,document,
+'https://sc-static.net/scevent.min.js');
+snaptr('init', '34713d0c-5b36-46e6-8973-4335dd708ab6', {});
+snaptr('track', 'PAGE_VIEW');
+/* RESERVE: any click on a WhatsApp booking link */
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('a[href*="wa.me"]');
+  if (!a) return;
+  var txt = ''; try { txt = new URL(a.href).searchParams.get('text') || ''; } catch (_) {}
+  snaptr('track', 'RESERVE', { description: txt.split('\n')[0].slice(0, 100) || 'WhatsApp' });
+}, true);
+/* SIGN_UP: booking form submitted (phone/email hashed before sending) */
+window.snapLead = async function (service, phone, email) {
+  var sha = async function (v) { var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return [...new Uint8Array(b)].map(function (x) { return x.toString(16).padStart(2, '0'); }).join(''); };
+  var p = { sign_up_method: 'booking_form', description: service };
+  try {
+    var d = String(phone || '').replace(/\D/g, '');
+    if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '20' + d.slice(1);
+    if (d) p.user_hashed_phone_number = await sha(d);
+    if (email) p.user_hashed_email = await sha(email.trim().toLowerCase());
+  } catch (_) {}
+  snaptr('track', 'SIGN_UP', p);
+};
+</script>
+<!-- End Snap Pixel Code -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1163,6 +1194,7 @@ $("#bk").addEventListener("submit", e=>{
   const cName={wa:t("fm.cWa"),call:t("fm.cCall"),mail:t("fm.cMail")}[contact];
   const msg=[t("fm.head"),"",`${t("fm.lName")}: ${nm.value.trim()}`,`${t("fm.lPhone")}: ${ph.value.trim()}`].concat(mail?[`${t("fm.lMail")}: ${mail}`]:[],[`${t("fm.lContact")}: ${cName}`,`${t("fm.lSvc")}: ${svc}`],note?[`${t("fm.lNote")}: ${note}`]:[]).join("\n");
   $("#f-wa").href=wa(msg);
+  try{ snapLead(svc, ph.value, mail); }catch(_){}
   $("#f-done").hidden=false; $("#f-done").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
 $("#sh-form").addEventListener("click", ()=>{
@@ -1223,7 +1255,7 @@ if ("IntersectionObserver" in window){
 })();
 
 let lastFocus = null;
-function openSheet(id){ lastFocus=document.activeElement; fill(id); $("#sheet").classList.add("on"); $("#scrim").classList.add("on"); $("#sheet").setAttribute("aria-hidden","false"); $("#sh-x").focus(); }
+function openSheet(id){ lastFocus=document.activeElement; fill(id); try{ const f=find(id); snaptr("track","VIEW_CONTENT",{item_ids:[id],item_category:f.d,description:f.it[1]}); }catch(_){} $("#sheet").classList.add("on"); $("#scrim").classList.add("on"); $("#sheet").setAttribute("aria-hidden","false"); $("#sh-x").focus(); }
 function closeSheet(){ current=null; $("#sheet").classList.remove("on"); $("#scrim").classList.remove("on"); $("#sheet").setAttribute("aria-hidden","true"); if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
 
 document.addEventListener("click", e=>{ const b=e.target.closest("[data-svc]"); if(b) openSheet(b.dataset.svc); });
